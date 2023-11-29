@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="shortcut icon" href="/assets/img/efo-favicon.png"/>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/fileinput.min.css">
+    <link rel="stylesheet" href="/assets/css/glyphicons.css">
+    <script src="/assets/js/popper.min.js"></script>
+    <script src="/assets/js/jquery-3.3.1.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
+    <script src="/assets/js/layer.js"></script>
+    <script src="/assets/js/vue.js"></script>
+    <script src="/assets/js/piexif.min.js"></script>
+    <script src="/assets/js/sortable.min.js"></script>
+    <script src="/assets/js/purify.min.js"></script>
+    <script src="/assets/js/fileinput.min.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/utils.js"></script>
+    <link rel="stylesheet" href="/assets/css/style.css"/>
+    <title>HOME PAGE</title>
+</head>
+<body id="particles-js">
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark navbar-toggler fixed-top">
+    <img src="/assets/img/efo-favicon.png" class="navbar-brand" style="width: 2rem;height: 2.5rem;"/>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+        <ul class="navbar-nav nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="pill" href="#resource-tab">Resource List</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="pill" href="#uploaded-tab">My Resources</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="pill" href="#bio-tab">My Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="upload" target="_blank">File Upload</a>
+            </li>
+        </ul>
+    </div>
+    <div class="form-inline w-50">
+        <input class="form-control border-dark bg-dark text-white form-control-sm w-100" type="search"
+               placeholder="Search" id="search"/>
+    </div>
+</nav>
+<br/><br/><br/>
+<div class="container" id="index">
+    <div class="row justify-content-center">
+        <div class="col-sm-12 col-10 tab-content">
+            <!--Resource List-->
+            <div class="tab-pane active" id="resource-tab">
+                <div class="row content-box rounded">
+                    <div class="col-sm-2 col-4">
+                        <br/>
+                        <select class="form-control content-filter" id="category" title="Find the specified classification file"
+                                data-toggle="tooltip">
+                            <option value="0">Whole</option>
+                        </select>
+                        <br/>
+                    </div>
+                    <div class="col-sm-2 col-4">
+                        <br/>
+                        <select class="form-control content-filter" id="order-by" title="Sorting method" data-toggle="tooltip">
+                            <option value="id">Time</option>
+                            <option value="download_times">Heat</option>
+                            <option value="size">Size</option>
+                        </select>
+                        <br/>
+                    </div>
+                    <div class="col-sm-2 col-4">
+                        <br/>
+                        <select class="form-control content-filter" id="order-way" title="Sort Order" data-toggle="tooltip">
+                            <option value="desc">Descending Order</option>
+                            <option value="asc">Ascending Order</option>
+                        </select>
+                        <br/>
+                    </div>
+                </div>
+                <br/>
+                <div id="resources-content"></div>
+                <button class="btn btn-link btn-block btn-lg" onclick="offset += 1;getPage();"><b><i
+                        class="glyphicon glyphicon-arrow-down"></i> Get More</b></button>
+                <br/><br/>
+            </div>
+            <!--My Resources-->
+            <div class="tab-pane" id="uploaded-tab">
+                <div id="uploaded-content"></div>
+                <button class="btn btn-link btn-block btn-lg" onclick="offset += 1;getPage();"><b><i
+                        class="glyphicon glyphicon-arrow-down"></i> Get More</b></button>
+                <br/><br/>
+            </div>
+
+            <!--My profile-->
+            <div class="tab-pane text-left" id="bio-tab">
+                <!--Permissions and login information-->
+                <div class="row content-box rounded">
+                    <div class="col-sm-1 col-1 col-md-1"></div>
+                    <div class="col-sm-11 col-11 col-md-6">
+                        <br/>
+                        <div class="row">
+                            <div class="col-sm-3 col-5 text-right">
+                                <span class="text-right">Authority：</span>
+                            </div>
+                            <div class="col-sm-6 col-7 text-left">
+                                <div v-if="permission>1">
+                                    <a href="admin" target="_blank">Administrators</a>
+                                </div>
+                                <div v-else>
+                                    <span class="text-left">Ordinary users</span>
+                                </div>
+                            </div>
+                        </div>
+                        <br/>
+                        <div class="row">
+                            <div class="col-sm-3 col-5 text-right">
+                                <span class="text-right">Login time：</span>
+                            </div>
+                            <div class="col-sm-6 col-7 text-left">
+                                <span class="text-left">{{loginTime}}</span>
+                            </div>
+                        </div>
+                        <br/>
+                    </div>
+                </div>
+                <br/>
+                <!--Basic information-->
+                <div class="row content-box rounded">
+                    <div class="col-sm-1 col-1 col-md-1"></div>
+                    <div class="col-sm-11 col-11 col-md-6">
+                        <br/>
+                        <div class="row">
+                            <div class="col-sm-3 col-5 text-right">
+                                <img onclick="showAvatarModal();" src="/assets/img/default-user.jpg" id="avatar"
+                                     class="rounded-circle avatar"/>
+                            </div>
+                            <div class="col-sm-6 col-7 text-left padding-top-3">
+                                <h3>{{username}}</h3>
+                            </div>
+                        </div>
+                        <br/>
+                        <div class="row">
+                            <div class="col-sm-3 col-5 text-right padding-top-1">
+                                <span class="text-right">Real name：</span>
+                            </div>
+                            <div class="col-sm-6 col-7 text-left">
+                                <input placeholder="My real name" id="real-name" type="text" class="form-control"/>
+                            </div>
+                        </div>
+                        <br/>
+                        <div class="row">
+                            <div class="col-sm-3 col-5 text-right padding-top-1">
+                                <span class="text-right">Mailbox：</span>
+                            </div>
+                            <div class="col-sm-6 col-7 text-left">
+                                <input placeholder="My email" id="email" type="email" class="form-control email"/>
+                                <label class="form-check-label text-danger">{{emailErrorTip}}</label>
+                            </div>
+                        </div>
+                        <div class="row verify-code-div" style="display: none;">
+                            <div class="col-sm-8 offset-sm-1 offset-2 col-10 row">
+                                <div class="col-sm-7 col-6 col-md-7">
+                                    <input type="number" id="email-verify-code" maxlength="6"
+                                           class="form-control email-verify-code"
+                                           placeholder="Received 6-digit verification code"/>
+                                    <label class="form-check-label text-danger">{{emailVerifyStatus}}</label>
+                                </div>
+                                <div class="col-sm-4 col-md-54 col-5 offset-1 text-right padding-0">
+                                    <button class="btn btn-outline-info sendVerifyCode btn-block">Send verification code</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-1 col-2"></div>
+                            <div class="col-sm-8 col-10 text-right">
+                                <button class="btn btn-primary btn-block" onclick="saveInfo();">Preserve</button>
+                            </div>
+                        </div>
+                        <br/>
+                    </div>
+                </div>
+                <br/>
+                <!--Change password-->
+                <div class="row content-box rounded">
+                    <div class="col-sm-1 col-1 col-md-1"></div>
+                    <div class="col-sm-11 col-11 col-md-6">
+                        <br/>
+                        <div class="row">
+                            <div class="col-sm-3 col-5 text-right padding-top-1">
+                                <span class="text-right">Old password：</span>
+                            </div>
+                            <div class="col-sm-6 col-7 text-left">
+                                <input placeholder="Old password" id="old-password" type="password" class="form-control"/>
+                            </div>
+                        </div>
+                        <br/>
+                        <div class="row">
+                            <div class="col-sm-3 col-5 text-right padding-top-1">
+                                <span class="text-right">New password：</span>
+                            </div>
+                            <div class="col-sm-6 col-7 text-left">
+                                <input placeholder="New password" id="new-password" type="password"
+                                       class="password form-control"/>
+                                <label class="form-check-label text-danger">{{passwordVerify}}</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-3 col-5 text-right padding-top-1">
+                                <span class="text-right">Confirm new password：</span>
+                            </div>
+                            <div class="col-sm-6 col-7 text-left">
+                                <input placeholder="Confirm new password" id="confirm-new-password" type="password"
+                                       class="form-control confirm-password"/>
+                                <label class="form-check-label text-danger">{{passwordConfirm}}</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-1 col-2"></div>
+                            <div class="col-sm-8 col-10 text-right">
+                                <button class="btn btn-warning btn-block" onclick="updatePassword();">Change password</button>
+                                <br/>
+<!--                                <a href="signin.html#reset" class="btn btn-block btn-danger" target="_blank">Forgot password</a>-->
+                                <a href="signin.html#login" class="btn btn-block btn-danger" target="_blank">Log out of login</a>
+                            </div>
+                        </div>
+                        <br/>
+                    </div>
+                </div>
+                <div class="row"><br/></div>
+            </div>
+        </div>
+    </div>
+    <div class="row text-center" id="footer"></div>
+</div>
+
+<!--Text editing modal box-->
+<div class="modal fade" id="edit-file-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">File information editing</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-9">
+                        <input type="hidden" id="edit-file-id" value="0">
+                        <input type="text" class="form-control" title="File Name" placeholder="FileName" data-toggle="tooltip"
+                               id="edit-file-name"/>
+                    </div>
+                    <div class="col-sm-3">
+                        <select class="form-control" id="edit-file-category" title="File Classification" data-toggle="tooltip">
+                            <option value="0">Unclassified</option>
+                        </select>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input type="text" class="form-control" id="edit-file-tag" data-toggle="tooltip"
+                               placeholder="File labels, multiple file labels separated by spaces" title="File labels, multiple file labels separated by spaces">
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-12 col-sm-12">
+                        <textarea class="form-control" id="edit-file-description" placeholder="FileDescription" title="File Description"
+                                  data-toggle="tooltip"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveFileInfo();">Preserve</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="/assets/js/particles.js"></script>
+<script src="/assets/js/default.js"></script>
+<script src="/assets/js/index.js"></script>
+</body>
+</html>

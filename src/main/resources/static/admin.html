@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml" xmlns:v-on="http://www.w3.org/1999/xhtml" lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="shortcut icon" href="/assets/img/efo-favicon.png"/>
+    <!--<link rel="stylesheet" href="/assets/css/foundation.min.css">-->
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/assets/css/nav.css"/>
+    <link rel="stylesheet" href="/assets/css/glyphicons.css">
+    <link rel="stylesheet" href="/assets/css/pretty-checkbox.min.css"/>
+    <script src="/assets/js/popper.min.js"></script>
+    <script src="/assets/js/jquery-3.3.1.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
+    <script src="/assets/js/nav.js"></script>
+    <script src="/assets/js/layer.js"></script>
+    <script src="/assets/js/vue.js"></script>
+    <script src="/assets/js/utils.js"></script>
+    <!--<script src="/assets/js/jsoneditor.js"></script>-->
+    <link rel="stylesheet" href="/assets/css/style.css"/>
+    <title>Administrators</title>
+</head>
+<body id="particles-js" style="overflow-x: hidden;">
+<div class="jq-nav float-left float-sm-left" style="height: 100%;min-height: 100vh;position: fixed;">
+    <div class="jq-nav-top">
+        <div id="mini" style="border-bottom:1px solid rgba(255,255,255,0.1)"><img src="/assets/img/mini.png"></div>
+    </div>
+    <ul>
+        <li class="jq-nav-item">
+            <a href="#upload-manager">Upload Record</a>
+        </li>
+
+        <li class="jq-nav-item">
+            <a href="#file-manager"> File Management</a>
+        </li>
+        <li class="jq-nav-item">
+            <a href="#auth-manager"> Permission Management</a>
+        </li>
+        <li class="jq-nav-item">
+            <a href="#category-manager"> Classification Management</a>
+        </li>
+        <li class="jq-nav-item">
+            <a href="#user-manager"> User Management</a>
+        </li>
+        <li class="jq-nav-item">
+            <a href="filemanager" target="_blank"> Remote Management</a>
+        </li>
+<!--        <li class="jq-nav-item">-->
+<!--            <a href="#system-setting"><span class="glyphicon glyphicon-cog">System Settings</span></a>-->
+<!--        </li>-->
+    </ul>
+</div>
+<br/>
+<div id="container">
+    <!--Upload Record-->
+    <div class="row jq-tab" id="upload-manager">
+        <file-filter-item></file-filter-item>
+        <div class="col-12 col-sm-10 offset-sm-1"><br/></div>
+        <div class="col-12 col-sm-10 offset-sm-1 content-box rounded">
+            <br/>
+            <table class="table table-bordered table-hover table-responsive table-condensed">
+                <thead>
+                <tr>
+                    <th>Number</th>
+                    <th>UserName</th>
+                    <th>Mailbox</th>
+                    <th>FilePath</th>
+                    <th>ClassificationName</th>
+                    <th>Link</th>
+                    <th>UploadTime</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(upload,key) in uploaded">
+                    <td>{{key+1}}</td>
+                    <td>{{upload.username}}</td>
+                    <td>{{upload.email}}</td>
+                    <td><a href="javascript:" onclick="alerts($(event.srcElement).attr('data-title'));"
+                           v-bind:title="upload.localUrl" data-toggle="tooltip"
+                           v-bind:data-title="upload.localUrl">【Check】</a></td>
+                    <td>{{upload.categoryName}}</td>
+                    <td><a v-bind:href="upload.visitUrl" target="_blank">Access</a></td>
+                    <td>{{new Date(upload.createTime).format('yyyy-MM-dd hh:mm:ss')}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <br/>
+        <button class="btn btn-lg btn-link btn-block" onclick="offset+=1;getUploaded();"><b><i
+                class="glyphicon glyphicon-arrow-down"></i> Get More</b></button>
+        <br/>
+    </div>
+
+    <!--FILE MANAGEMENT-->
+    <div class="row jq-tab hide" id="file-manager">
+        <file-filter-item></file-filter-item>
+        <div class="col-12 col-sm-10 offset-sm-1"><br/></div>
+        <div class="col-12 col-sm-10 offset-sm-1 content-box rounded">
+            <br/>
+            <div class="text-right">
+                <button class="btn btn-primary" onclick="showFileShareModal();"><i
+                        class="glyphicon glyphicon-share"></i> Sharing
+                </button>
+                <button class="btn btn-success to-upload-button"><i
+                        class="glyphicon glyphicon-cloud-upload"></i> Upload
+                </button>
+                <button class="btn btn-warning" onclick="showFileModal('#file-manager-table','#fileModifiedModal');"><i
+                        class="glyphicon glyphicon-wrench"></i> Modify
+                </button>
+                <button class="btn btn-dark" onclick="showFileModal('#file-manager-table','#fileAuthModal');"><i
+                        class="glyphicon glyphicon-eye-close"></i> Authority
+                </button>
+                <button class="btn btn-danger file-delete"><i class="glyphicon glyphicon-trash"></i> Delete</button>
+            </div>
+            <br/>
+            <table class="table table-bordered table-hover table-responsive table-condensed" id="file-manager-table">
+                <thead>
+                <tr>
+                    <th>
+                        <div class="pretty p-default p-curve p-thick">
+                            <input type="checkbox" id="file-toggle-box" name="file" title=""
+                                   onchange="toggleCheckBoxStatus('file');"/>
+                            <div class="state p-info-o">
+                                <label></label>
+                            </div>
+                        </div>
+                    </th>
+                    <th>NUMBER</th>
+                    <th>DocumentNumber</th>
+                    <th>UserName</th>
+                    <th>LocalPath</th>
+                    <th>Classification</th>
+                    <th>Link</th>
+                    <th>UploadTime</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(file,key) in files" onclick="toggleRowSelectedStatus(this);">
+                    <td>
+                        <div class="pretty p-default p-curve p-thick">
+                            <input type="checkbox" name="file" title=""/>
+                            <div class="state p-info-o">
+                                <label></label>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="file-index" v-bind:data-key="key">{{key+1}}</td>
+                    <td>{{file.id}}</td>
+                    <td>{{file.username}}</td>
+                    <td><a href="javascript:" onclick="alerts($(event.srcElement).attr('data-title'));"
+                           v-bind:title="file.localUrl" data-toggle="tooltip"
+                           v-bind:data-title="file.localUrl">【Check】</a></td>
+                    <td>{{file.categoryName}}</td>
+                    <td><a v-bind:href="file.visitUrl" target="_blank">Access</a></td>
+                    <td>{{new Date(file.createTime).format('yyyy-MM-dd hh:mm:ss')}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <br/>
+        <button class="btn btn-lg btn-link btn-block" onclick="offset+=1;getFile();"><b><i
+                class="glyphicon glyphicon-arrow-down"></i> Get More</b></button>
+        <br/>
+    </div>
+    <!--Permission management-->
+    <div class="row jq-tab hide" id="auth-manager">
+        <div class="col-12 col-sm-10 offset-sm-1 content-box rounded">
+            <br/>
+            <div class="row">
+                <div class="col-sm-4 col-6">
+                    <input type="text" class="form-control auth-search user-filter" placeholder="UserNameOrEmail"
+                           onkeyup="fileFilter();"/>
+                </div>
+                <div class="col-sm-4 col-6">
+                    <input type="text" class="form-control auth-search file-name-filter" placeholder="FileNameFuzzySearch"
+                           onkeyup="fileFilter();"/>
+                </div>
+            </div>
+            <br/>
+        </div>
+        <div class="col-12 col-sm-10 offset-sm-1"><br/></div>
+        <div class="col-12 col-sm-10 offset-sm-1 content-box rounded">
+            <br/>
+            <div class="text-right">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#authAddedModal"
+                        onclick="authFileSearch='';"><i class="glyphicon glyphicon-flash"></i> Add
+                </button>
+                <button class="btn btn-success" onclick="showFileModal('#auth-manager-table','#authEditModal');"><i
+                        class="glyphicon glyphicon-edit"></i> Edit
+                </button>
+                <button class="btn btn-danger auth-delete"><i class="glyphicon glyphicon-trash"></i> Delete</button>
+            </div>
+            <br/>
+            <table class="table table-bordered table-hover table-responsive table-condensed" id="auth-manager-table">
+                <thead>
+                <tr>
+                    <th>
+                        <div class="pretty p-default p-curve p-thick">
+                            <input type="checkbox" id="auth-toggle-box" name="file" title=""
+                                   onchange="toggleCheckBoxStatus('auth');"/>
+                            <div class="state p-info-o">
+                                <label></label>
+                            </div>
+                        </div>
+                    </th>
+                    <th>Number</th>
+                    <th>UserName</th>
+                    <th>FileName</th>
+                    <th>LocalPath</th>
+                    <th>DownloadPermissions</th>
+                    <th>RemovePermissions</th>
+                    <th>ModifyPermissions</th>
+                    <th>VisiblePermissions</th>
+                    <th>CreationTime</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(auth,key) in auths" onclick="toggleRowSelectedStatus(this);">
+                    <td>
+                        <div class="pretty p-default p-curve p-thick">
+                            <input type="checkbox" name="file" title=""/>
+                            <div class="state p-info-o">
+                                <label></label>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="auth-index" v-bind:data-key="key">{{key+1}}</td>
+                    <td>{{auth.username}}</td>
+                    <td>{{auth.fileName}}</td>
+                    <td><a href="javascript:" onclick="alerts($(event.srcElement).attr('data-title'));"
+                           v-bind:title="auth.localUrl" data-toggle="tooltip"
+                           v-bind:data-title="auth.localUrl">【Check】</a></td>
+                    <td class="text-center" v-html="getIconYesOrNo(auth.isDownloadable)"></td>
+                    <td class="text-center" v-html="getIconYesOrNo(auth.isDeletable)"></td>
+                    <td class="text-center" v-html="getIconYesOrNo(auth.isUpdatable)"></td>
+                    <td class="text-center" v-html="getIconYesOrNo(auth.isVisible)"></td>
+                    <td>{{new Date(auth.createTime).format('yyyy-MM-dd hh:mm:ss')}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <br/>
+        <button class="btn btn-lg btn-link btn-block" onclick="offset+=1;getAuth();"><b><i
+                class="glyphicon glyphicon-arrow-down"></i> Get More</b></button>
+        <br/>
+    </div>
+    <!--ClassificationManagement-->
+    <div class="row jq-tab hide" id="category-manager">
+        <div class="col-sm-3 col-12 offset-sm-1 padding-0">
+            <div class="content-box rounded" style="padding: 0 1rem;">
+                <br/>
+                <h4 class="text-center" id="category-title">AddNewCategory</h4><br/>
+                <input type="hidden" value="0" id="category-key"/>
+                <input type="hidden" value="0" id="category-id"/>
+                <input class="form-control" id="category-name" title="ClassificationName" placeholder="NewClassificationName" type="text"/>
+                <br/>
+                <button class="btn btn-primary btn-block" onclick="saveCategory();">Preserve</button>
+                <br/>
+            </div>
+            <br/>
+        </div>
+        <div class="col-sm-6 offset-sm-1 col-12 content-box rounded">
+            <br/>
+            <table class="table table-bordered table-hover table-responsive table-condensed">
+                <thead>
+                <tr>
+                    <th>Number</th>
+                    <th>Name</th>
+                    <th>Creation time</th>
+                    <th class="text-center">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(category,key) in categories">
+                    <td class="hide">{{key}}</td>
+                    <td class="category-id">{{category.id}}</td>
+                    <td class="category-name">{{category.name}}</td>
+                    <td>{{new Date(category.createTime).format('yyyy-MM-dd hh:mm:ss')}}</td>
+                    <td class="text-center">
+                        <a onclick="editCategory();" href="javascript:">Edit</a>
+                        &emsp;<a onclick="deleteCategory();" href="javascript:">Delete</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <br/>
+        </div>
+    </div>
+    <!--USER-MANAGEMENT-->
+    <div class="row jq-tab hide" id="user-manager">
+        <div class="col-12 col-sm-10 offset-sm-1 content-box rounded">
+            <br/>
+            <div class="row">
+                <div class="col-sm-5 col-12">
+                    <input type="text" class="form-control user-filter" placeholder="User name or email"
+                           onkeyup="fileFilter();"/>
+                </div>
+            </div>
+            <br/>
+        </div>
+        <div class="col-12 col-sm-10 offset-sm-1"><br/></div>
+        <div class="col-12 col-sm-10 offset-sm-1 content-box rounded">
+            <br/>
+            <div class="text-right">
+                <button class="btn btn-info" onclick="showFileModal('#user-manager-table','#userFileAuthModal')"><i
+                        class="glyphicon glyphicon-edit"></i> EditUserDefaultFilePermissions
+                </button>
+                <button class="btn btn-warning" onclick="showFileModal('#user-manager-table','#userAuthModal')"><i
+                        class="glyphicon glyphicon-wrench"></i> ModifyUserPermissions
+                </button>
+                <button class="btn btn-danger" onclick="showFileModal('#user-manager-table','#userPasswordModal');"><i
+                        class="glyphicon glyphicon-warning-sign"></i> ResetUserPassword
+                </button>
+            </div>
+            <br/>
+            <table class="table table-bordered table-hover table-responsive table-condensed" id="user-manager-table">
+                <thead>
+                <tr>
+                    <th>
+                        <div class="pretty p-default p-curve p-thick">
+                            <input type="checkbox" id="user-toggle-box" name="file" title=""
+                                   onchange="toggleCheckBoxStatus('user');"/>
+                            <div class="state p-info-o">
+                                <label></label>
+                            </div>
+                        </div>
+                    </th>
+                    <th>Number</th>
+                    <th>Avatar</th>
+                    <th>UserName</th>
+                    <th>RealName</th>
+                    <th>Mailbox</th>
+                    <th>Authority</th>
+                    <th>LastLoginTime</th>
+                    <th>RegistrationTime</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(user,key) in users" onclick="toggleRowSelectedStatus(this);">
+                    <td>
+                        <div class="pretty p-default p-curve p-thick">
+                            <input type="checkbox" name="file" title=""/>
+                            <div class="state p-info-o">
+                                <label></label>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="user-index" v-bind:data-key="key">{{key+1}}</td>
+                    <td><img v-bind:src="user.avatar ? user.avatar : '/assets/img/default-user.jpg'" width="30rem"
+                             height="30rem"></td>
+                    <td>{{user.username}}</td>
+                    <td>{{user.realName}}</td>
+                    <td>{{user.email}}</td>
+                    <td>{{user.permission<1?"Prohibit login":(user.permission<2?"Ordinary users":"Administrators")}}</td>
+                    <td>{{new Date(user.lastLoginTime).format('yyyy-MM-dd hh:mm:ss')}}</td>
+                    <td>{{new Date(user.createTime).format('yyyy-MM-dd hh:mm:ss')}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <br/>
+        <button class="btn btn-lg btn-link btn-block" onclick="offset+=1;getUser();"><b><i
+                class="glyphicon glyphicon-arrow-down"></i> Get More</b></button>
+        <br/>
+    </div>
+    <!--System settings-->
+    <div class="row jq-tab hide" id="system-setting">
+        <div class="col-12 col-sm-10 offset-sm-1 content-box rounded">
+            <br/>
+            <div class="row">
+                <div class="col-12 col-sm-12 text-right">
+                    <button class="btn btn-outline-info" onclick="saveConfig();"><i
+                            class="glyphicon glyphicon-floppy-disk"></i> Preserve
+                    </button>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <div class="col-sm-12 col-12" id="json-editor">
+                    <textarea class="form-control" style="height: 100vh;width: 100%;" title="Edit Configuration File"
+                              data-toggle="tooltip"></textarea>
+                </div>
+            </div>
+            <br/>
+        </div>
+    </div>
+    <div class="row text-center" id="footer"></div>
+</div>
+<br/>
+<!--User Permission Modal Box-->
+<div class="modal fade" id="userAuthModal" tabindex="-1" role="dialog" aria-labelledby="userAuthModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title pull-left" id="userAuthModalLabel">Reset User Password</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="user name" type="text" class="form-control username"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <select class="form-control user-permission" title="User permissions" data-toggle="tooltip">
+                            <option value="0">Prohibit login</option>
+                            <option value="1">Ordinary users</option>
+                            <option value="2">Administrators</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" onclick="rowIndex-=1;setUsername('#userAuthModal','auth');"><i
+                        class="glyphicon glyphicon-arrow-left"></i> Previous
+                </button>
+                <button class="btn btn-outline-primary" onclick="rowIndex+=1;setUsername('#userAuthModal','auth');">Next
+                    <i class="glyphicon glyphicon-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-info" data-dismiss="modal"><i
+                        class="glyphicon glyphicon-remove"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="user-auth-update-button"
+                        style="background-color: #9b58b5;border-color: #9b58b5;"><i
+                        class="glyphicon glyphicon-floppy-open"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--User File Permission Editing Modal Box-->
+<div class="modal fade" id="userPasswordModal" tabindex="-1" role="dialog" aria-labelledby="userPasswordModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title pull-left" id="userPasswordModalLabel">Reset User Password</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="UserName" type="text" class="form-control username"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="Password" type="text" maxlength="30" minlength="6" class="form-control user-password"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" onclick="rowIndex-=1;setUsername('#userPasswordModal','');"><i
+                        class="glyphicon glyphicon-arrow-left"></i> Previous
+                </button>
+                <button class="btn btn-outline-primary" onclick="rowIndex+=1;setUsername('#userPasswordModal','');">Next
+                    <i
+                            class="glyphicon glyphicon-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-info" data-dismiss="modal"><i
+                        class="glyphicon glyphicon-remove"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="user-password-update-button"
+                        style="background-color: #9b58b5;border-color: #9b58b5;"><i
+                        class="glyphicon glyphicon-floppy-open"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--User File Permission Editing Modal Box-->
+<div class="modal fade" id="userFileAuthModal" tabindex="-1" role="dialog" aria-labelledby="userFileAuthModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title pull-left" id="userFileAuthModalLabel">Edit User Default File Permissions</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="UserName" type="text" class="form-control username"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-3 col-6">
+                        <input title="Download permissions" type="number" class="form-control user-downloadable"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Upload permissions" type="number" class="form-control user-uploadable"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Remove permissions" type="number" class="form-control user-deletable"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Edit permissions" type="number" class="form-control user-updatable"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" onclick="rowIndex-=1;setUserFileAuth();"><i
+                        class="glyphicon glyphicon-arrow-left"></i> Previous
+                </button>
+                <button class="btn btn-outline-primary" onclick="rowIndex+=1;setUserFileAuth();">Next <i
+                        class="glyphicon glyphicon-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-info" data-dismiss="modal"><i
+                        class="glyphicon glyphicon-remove"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="user-file-auth-update-button"
+                        style="background-color: #9b58b5;border-color: #9b58b5;"><i
+                        class="glyphicon glyphicon-floppy-open"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--File Sharing Modal Box-->
+<div class="modal fade" id="fileAddedModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title pull-left" id="myModalLabel">Shared Server Local Files</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body" style="height: 25rem;overflow: auto;">
+                <div class="row">
+                    <div class="col-sm-7 col-7">
+                        <input type="text" class="form-control" placeholder="Select Path" id="select-url"/>
+                        <br/>
+                        <div id="server-file-list">
+                            <ul class="list-group" id="server-file-list-group"></ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 col-5">
+                        <input type="text" class="form-control" placeholder="Link prefix, supporting rules" id="link-prefix">
+                        <br/>
+                        <div id="selected-file-list">
+                            <ul class="list-group" id="selected-file-list-group"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:" class="text-primary server-path-return"><i
+                        class="glyphicon glyphicon-chevron-left"></i> Return to superior</a>
+                <div class="pretty p-default p-curve p-thick">
+                    <input type="checkbox" id="share-all-file" placeholder="All files in the shared folder"/>
+                    <div class="state p-info-o text-dark">
+                        <label>All files under the shared folder (non recursive)</label>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-info" data-dismiss="modal"><i
+                        class="glyphicon glyphicon-remove"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="server-file-share-button"
+                        style="background-color: #9b58b5;border-color: #9b58b5;"><i
+                        class="glyphicon glyphicon-send"></i> Shared Files
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--File modification modal box-->
+<div class="modal fade" id="fileModifiedModal" tabindex="-1" role="dialog" aria-labelledby="modifiedModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title pull-left" id="modifiedModalLabel">Modify file path (including file name)</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <input type="hidden" id="file-id" value="0">
+                    <div class="col-sm-12 col-12">
+                        <input title="Original local path" type="text" class="form-control" id="old-file-local-url" disabled
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="New Local Path" type="text" class="form-control" id="new-file-local-url"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="Original Access Link" type="text" class="form-control" id="old-file-visit-url" disabled
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="New Access Link" type="text" class="form-control" id="new-file-visit-url"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" onclick="rowIndex-=1;setModifyFile();"><i
+                        class="glyphicon glyphicon-arrow-left"></i> Previous
+                </button>
+                <button class="btn btn-outline-primary" onclick="rowIndex+=1;setModifyFile();">Next <i
+                        class="glyphicon glyphicon-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-info" data-dismiss="modal"><i
+                        class="glyphicon glyphicon-remove"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="file-modify-button"
+                        style="background-color: #9b58b5;border-color: #9b58b5;"><i
+                        class="glyphicon glyphicon-floppy-open"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--File Permissions Modal Box-->
+<div class="modal fade" id="fileAuthModal" tabindex="-1" role="dialog" aria-labelledby="authModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title pull-left" id="authModalLabel">Edit File Permissions</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" class="form-control" id="file-auth-id" value="0">
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="File Local Path" type="text" class="form-control" id="file-local-url"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-3 col-6">
+                        <input title="Download permissions" type="number" class="form-control" id="file-downloadable-auth"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Remove permissions" type="number" class="form-control" id="file-deletable-auth"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Edit permissions" type="number" class="form-control" id="file-updatable-auth"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Visible permissions" type="number" class="form-control" id="file-visible-auth"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" onclick="rowIndex-=1;setFileAuth();"><i
+                        class="glyphicon glyphicon-arrow-left"></i> Previous
+                </button>
+                <button class="btn btn-outline-primary" onclick="rowIndex+=1;setFileAuth();">Next <i
+                        class="glyphicon glyphicon-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-info" data-dismiss="modal"><i
+                        class="glyphicon glyphicon-remove"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="file-auth-update-button"
+                        style="background-color: #9b58b5;border-color: #9b58b5;"><i
+                        class="glyphicon glyphicon-floppy-open"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Permission editing modal box-->
+<div class="modal fade" id="authEditModal" tabindex="-1" role="dialog" aria-labelledby="authEditModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title pull-left" id="authEditModalLabel">Edit File Permissions</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" class="form-control" id="auth-id" value="0">
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="UserName" type="text" class="form-control" id="auth-username"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-12 col-12">
+                        <input title="File Local Path" type="text" class="form-control" id="auth-file-local-url"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-3 col-6">
+                        <input title="Download permissions" type="number" class="form-control" id="auth-downloadable"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Remove permissions" type="number" class="form-control" id="auth-deletable"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Edit permissions" type="number" class="form-control" id="auth-updatable"
+                               data-toggle="tooltip"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Visible permissions" type="number" class="form-control" id="auth-visible"
+                               data-toggle="tooltip"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" onclick="rowIndex-=1;setAuth();"><i
+                        class="glyphicon glyphicon-arrow-left"></i> Previous
+                </button>
+                <button class="btn btn-outline-primary" onclick="rowIndex+=1;setAuth();">Next <i
+                        class="glyphicon glyphicon-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-info" data-dismiss="modal"><i
+                        class="glyphicon glyphicon-remove"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="auth-update-button"
+                        style="background-color: #9b58b5;border-color: #9b58b5;"><i
+                        class="glyphicon glyphicon-floppy-open"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--File Sharing Modal Box-->
+<div class="modal fade" id="authAddedModal" tabindex="-1" role="dialog" aria-labelledby="authAddedModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title pull-left" id="authAddedModalLabel">Add permission record</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="height: 10rem;overflow: auto;">
+                    <div class="col-sm-12 col-12">
+                        <input type="text" class="form-control" v-on:keyup.enter="searchFileInAuth"
+                               placeholder="Search for files through local path (fuzzy search)" id="auth-file-search"/>
+                        <br/>
+                        <div id="auth-file-list">
+                            <ul class="list-group" id="auth-file-list-group"></ul>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+                <div class="row" style="height: 10rem;overflow: auto;">
+                    <div class="col-sm-12 col-12">
+                        <input type="text" class="form-control" v-on:keyup.enter="searchUserInAuth" placeholder="Search for users"
+                               id="auth-user-search"/>
+                        <br/>
+                        <div id="auth-user-list">
+                            <ul class="list-group" id="auth-user-list-group"></ul>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-sm-3 col-6">
+                        <input title="Download permissions" type="number" class="form-control" id="auth-downloadable-new"
+                               data-toggle="tooltip" value="1"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Remove permissions" type="number" class="form-control" id="auth-deletable-new"
+                               data-toggle="tooltip" value="0"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Edit permissions" type="number" class="form-control" id="auth-updatable-new"
+                               data-toggle="tooltip" value="0"/>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <input title="Visible permissions" type="number" class="form-control" id="auth-visible-new"
+                               data-toggle="tooltip" value="1"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-dismiss="modal"><i
+                        class="glyphicon glyphicon-remove"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" id="auth-add-button"
+                        style="background-color: #9b58b5;border-color: #9b58b5;"><i
+                        class="glyphicon glyphicon-asterisk"></i> Add permission record
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/assets/js/particles.js"></script>
+<script src="/assets/js/default.js"></script>
+<script src="/assets/js/admin.js"></script>
+</body>
+</html>
